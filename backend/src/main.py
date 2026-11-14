@@ -2,7 +2,7 @@ import os,logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy import text
-from src.config.database import Base,engine
+from src.config.database import Base,engine,SessionLocal
 from src.config.queue import queue
 from src import models
 from src.routes import auth,series,runs,releases,audits,stats
@@ -11,6 +11,11 @@ from src.middlewares.error_handler import ErrorHandler
 @asynccontextmanager
 async def lifespan(app):
     Base.metadata.create_all(engine)
+    with SessionLocal() as db:
+        try:
+            from src.migrations.upgrade_002 import ensure_joint_schema
+            ensure_joint_schema(db)
+        except Exception: logging.exception('joint schema upgrade failed; service remains available')
     if os.getenv('SEED_DEMO','true').lower()=='true':
         try:
             from scripts.seed_demo import seed

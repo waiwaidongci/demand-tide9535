@@ -6,7 +6,11 @@ class ForecastRun(Base):
     __tablename__='forecast_runs'
     id:Mapped[int]=mapped_column(primary_key=True)
     name:Mapped[str]=mapped_column(String(100))
-    series_id:Mapped[int]=mapped_column(ForeignKey('series.id'))
+    # 单序列任务使用 series_id；联合任务使用 region_series_id + store_series_ids
+    series_id:Mapped[int|None]=mapped_column(ForeignKey('series.id'),nullable=True)
+    run_type:Mapped[str]=mapped_column(String(20),default='single')
+    region_series_id:Mapped[int|None]=mapped_column(ForeignKey('series.id'),nullable=True)
+    store_series_ids:Mapped[list|None]=mapped_column(JSON,nullable=True)
     horizon:Mapped[int]=mapped_column(default=14)
     season:Mapped[int]=mapped_column(default=7)
     status:Mapped[str]=mapped_column(String(20),default='queued')

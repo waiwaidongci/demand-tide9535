@@ -5,6 +5,12 @@ from src.config.queue import queue,QUEUE_NAME
 from src.models import ForecastRun
 from src.services.run_service import compute
 logging.basicConfig(level=logging.INFO)
+with SessionLocal() as db:
+    try:
+        from src.migrations.upgrade_002 import ensure_joint_schema
+        ensure_joint_schema(db)
+    except Exception:
+        logging.exception('joint schema upgrade failed in worker')
 while True:
     Path('/tmp/heartbeat').touch()
     try:
